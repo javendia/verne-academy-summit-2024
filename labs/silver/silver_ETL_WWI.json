@@ -1,0 +1,142 @@
+{
+    "name": "silver_ETL_WWI",
+    "objectId": "7d9a1476-708e-4f51-8f32-8ae8976c1287",
+    "properties": {
+        "activities": [
+            {
+                "name": "get_metadata",
+                "type": "Lookup",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 3,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "LakehouseTableSource"
+                    },
+                    "firstRowOnly": false,
+                    "datasetSettings": {
+                        "annotations": [],
+                        "linkedService": {
+                            "name": "silver_WWI",
+                            "properties": {
+                                "annotations": [],
+                                "type": "Lakehouse",
+                                "typeProperties": {
+                                    "workspaceId": "8bbf4592-3089-493c-a2ae-6f30b3bf46d1",
+                                    "artifactId": "f982ce7f-73d0-4312-b77d-d436e8d26446",
+                                    "rootFolder": "Tables"
+                                }
+                            }
+                        },
+                        "type": "LakehouseTable",
+                        "schema": [],
+                        "typeProperties": {
+                            "table": "md_extract_bronze_silver"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "list_files",
+                "type": "SetVariable",
+                "dependsOn": [
+                    {
+                        "activity": "get_metadata",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "variableName": "notebooks",
+                    "value": {
+                        "value": "@activity('get_metadata').output.value",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "call_notebooks",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "list_files",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "items": {
+                        "value": "@variables('notebooks')",
+                        "type": "Expression"
+                    },
+                    "isSequential": true,
+                    "activities": [
+                        {
+                            "name": "set_notebook_name",
+                            "type": "SetVariable",
+                            "dependsOn": [],
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "variableName": "notebook_name",
+                                "value": {
+                                    "value": "@item().notebook_id",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "run_notebook",
+                            "type": "TridentNotebook",
+                            "dependsOn": [
+                                {
+                                    "activity": "set_notebook_name",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 3,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "notebookId": {
+                                    "value": "@variables('notebook_name')",
+                                    "type": "Expression"
+                                },
+                                "workspaceId": "8bbf4592-3089-493c-a2ae-6f30b3bf46d1"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "variables": {
+            "notebooks": {
+                "type": "Array"
+            },
+            "notebook_name": {
+                "type": "String"
+            }
+        },
+        "lastModifiedByObjectId": "0b6b77fd-d4c4-4034-a103-cf62f936ce97",
+        "lastPublishTime": "2024-05-05T17:02:30Z"
+    }
+}

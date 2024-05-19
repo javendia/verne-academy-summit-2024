@@ -1,0 +1,117 @@
+{
+    "name": "gold_etl_WWI",
+    "objectId": "29bff2c3-ed11-4884-9e25-c03281625f1a",
+    "properties": {
+        "activities": [
+            {
+                "name": "gold_etl_calendar_WWI",
+                "type": "RefreshDataflow",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 3,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "dataflowId": "041f7b76-be21-4303-838d-6d8f915e0ea6",
+                    "workspaceId": "8bbf4592-3089-493c-a2ae-6f30b3bf46d1",
+                    "notifyOption": "NoNotification"
+                }
+            },
+            {
+                "name": "copy_activities",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "gold_etl_calendar_WWI",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "items": {
+                        "value": "@variables('stored_procedures')",
+                        "type": "Expression"
+                    },
+                    "isSequential": true,
+                    "activities": [
+                        {
+                            "name": "set_stored_procedure",
+                            "type": "SetVariable",
+                            "dependsOn": [],
+                            "policy": {
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "variableName": "stored_procedure",
+                                "value": {
+                                    "value": "@item()",
+                                    "type": "Expression"
+                                }
+                            }
+                        },
+                        {
+                            "name": "copy_data",
+                            "type": "SqlServerStoredProcedure",
+                            "dependsOn": [
+                                {
+                                    "activity": "set_stored_procedure",
+                                    "dependencyConditions": [
+                                        "Succeeded"
+                                    ]
+                                }
+                            ],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "storedProcedureName": {
+                                    "value": "@variables('stored_procedure')",
+                                    "type": "Expression"
+                                }
+                            },
+                            "linkedService": {
+                                "name": "gold_WWI",
+                                "objectId": "80672fd7-f526-47c3-81fc-905976791378",
+                                "properties": {
+                                    "annotations": [],
+                                    "type": "DataWarehouse",
+                                    "typeProperties": {
+                                        "endpoint": "a25d4cfjn73upk32gf4v25aia4-sjc37c4jga6etivon4ylhp2g2e.datawarehouse.fabric.microsoft.com",
+                                        "artifactId": "80672fd7-f526-47c3-81fc-905976791378"
+                                    },
+                                    "tridentArtifactType": "DataWarehouse"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "variables": {
+            "stored_procedures": {
+                "type": "Array",
+                "defaultValue": [
+                    "[etl].[load_WWI_dim_customer]",
+                    "[etl].[load_WWI_dim_people]",
+                    "[etl].[load_WWI_dim_stockitem]",
+                    "[etl].[load_WWI_fact_invoices]",
+                    "[etl].[load_WWI_fact_orders]"
+                ]
+            },
+            "stored_procedure": {
+                "type": "String"
+            }
+        },
+        "lastModifiedByObjectId": "0b6b77fd-d4c4-4034-a103-cf62f936ce97",
+        "lastPublishTime": "2024-05-10T12:58:28Z"
+    }
+}

@@ -1,0 +1,134 @@
+{
+    "name": "bronze_etl_WWI",
+    "objectId": "7526a837-e949-43e7-b281-56655d3cd319",
+    "properties": {
+        "activities": [
+            {
+                "name": "cpactivities",
+                "type": "ForEach",
+                "dependsOn": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@variables('files')",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "cpactivity_file",
+                            "type": "Copy",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 3,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "typeProperties": {
+                                "source": {
+                                    "type": "DelimitedTextSource",
+                                    "storeSettings": {
+                                        "type": "HttpReadSettings",
+                                        "requestMethod": "GET"
+                                    },
+                                    "formatSettings": {
+                                        "type": "DelimitedTextReadSettings"
+                                    },
+                                    "datasetSettings": {
+                                        "annotations": [],
+                                        "type": "DelimitedText",
+                                        "typeProperties": {
+                                            "location": {
+                                                "type": "HttpServerLocation",
+                                                "relativeUrl": {
+                                                    "value": "@item()",
+                                                    "type": "Expression"
+                                                }
+                                            },
+                                            "columnDelimiter": ",",
+                                            "escapeChar": "\\",
+                                            "firstRowAsHeader": true,
+                                            "quoteChar": "\""
+                                        },
+                                        "schema": [],
+                                        "externalReferences": {
+                                            "connection": "b910238f-99ce-4b8d-97f4-e0dfbb05dd63"
+                                        }
+                                    }
+                                },
+                                "sink": {
+                                    "type": "DelimitedTextSink",
+                                    "storeSettings": {
+                                        "type": "LakehouseWriteSettings"
+                                    },
+                                    "formatSettings": {
+                                        "type": "DelimitedTextWriteSettings",
+                                        "quoteAllText": true,
+                                        "fileExtension": ".txt"
+                                    },
+                                    "datasetSettings": {
+                                        "annotations": [],
+                                        "linkedService": {
+                                            "name": "bronze_WWI",
+                                            "properties": {
+                                                "annotations": [],
+                                                "type": "Lakehouse",
+                                                "typeProperties": {
+                                                    "workspaceId": "8bbf4592-3089-493c-a2ae-6f30b3bf46d1",
+                                                    "artifactId": "8bee44a0-4003-44ec-8497-8326887259ce",
+                                                    "rootFolder": "Files"
+                                                }
+                                            }
+                                        },
+                                        "type": "DelimitedText",
+                                        "typeProperties": {
+                                            "location": {
+                                                "type": "LakehouseLocation",
+                                                "fileName": {
+                                                    "value": "@item()",
+                                                    "type": "Expression"
+                                                },
+                                                "folderPath": "wwi"
+                                            },
+                                            "columnDelimiter": ",",
+                                            "escapeChar": "\\",
+                                            "firstRowAsHeader": true,
+                                            "quoteChar": "\""
+                                        },
+                                        "schema": []
+                                    }
+                                },
+                                "enableStaging": false,
+                                "translator": {
+                                    "type": "TabularTranslator",
+                                    "typeConversion": true,
+                                    "typeConversionSettings": {
+                                        "allowDataTruncation": true,
+                                        "treatBooleanAsNumber": false
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "variables": {
+            "files": {
+                "type": "Array",
+                "defaultValue": [
+                    "Colors.csv",
+                    "Customers.csv",
+                    "CustomerCategories.csv",
+                    "DeliveryMethods.csv",
+                    "Invoices.csv",
+                    "Orders.csv",
+                    "People.csv",
+                    "StockItems.csv"
+                ]
+            }
+        },
+        "lastModifiedByObjectId": "0b6b77fd-d4c4-4034-a103-cf62f936ce97",
+        "lastPublishTime": "2024-04-17T15:48:48Z"
+    }
+}

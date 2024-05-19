@@ -1,0 +1,19 @@
+## ORDERS
+
+Total Sales Quantity = SUM('Orders'[Quantity])
+
+Sales Amount = SUMX('Orders', 'Orders'[Quantity] * 'Orders'[UnitPrice])
+
+Sales Tax Amount = SUMX('Orders', [Sales Amount] * DIVIDE('Orders'[TaxRate], 100))
+
+Sales Net Cost = [Sales Amount] - [Sales Tax Amount]
+
+## INVOICES
+
+Total Invoice Quantity = SUM(Invoices[Quantity])
+
+Invoice Amount = SUMX('Invoices', 'Invoices'[Quantity] * 'Invoices'[UnitPrice])
+
+Invoice Tax Amount = SUMX('Invoices', [Invoice Amount] * DIVIDE('Invoices'[TaxRate], 100))
+
+Invoice Net Cost = [Invoice Amount] - [Invoice Tax Amount]
